@@ -32,7 +32,7 @@ def make_thumbnails(
     if not thumbnail_dir.exists():
         thumbnail_dir.mkdir(parents=True, exist_ok=True)
 
-    def process_image(file):
+    for file in gallery_dir.iterdir():
         try:
             with Image.open(gallery_dir.joinpath(file.name)) as img:
                 width, height = img.size                            # get original sizes
@@ -78,8 +78,6 @@ def make_thumbnails(
         except UnidentifiedImageError as error:
             print(error)
     
-    for file in gallery_dir.iterdir():
-        process_image(file)
     
     print("\nThumbnailinator is done!")
 
