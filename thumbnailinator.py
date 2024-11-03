@@ -1,16 +1,3 @@
-### Quick docs:
-# make_thumbnails iterates over files in a given directory and makes thumnails out of them.
-
-# kwargs:
-#   source_path         - path to original images
-#   output_path			- directory to which thumbnails are saved
-#   new_width/height    - the sizes of the output thumbnail
-#   format				- format of the image, see: PIL.format
-#   force_overwrite     - whether the program should ask for permission before overwriting pre-existing thumbnails
-#   pattern				- function that takes and returns a string
-#							it transforms the name of the original image
-#							None - a thumbnail_ is added before the name of the original file 
-
 from PIL import Image
 from pathlib import Path
 from typing import Callable
@@ -19,6 +6,15 @@ from multiprocessing.pool import Pool as mpPool
 
 if __name__ == "__main__": import argparse
 
+# kwargs:
+#   source_path         - path to original images
+#   output_path			- directory to which thumbnails are saved
+#   new_width/height    - the sizes of the output thumbnail
+#   format_				- format of the image, see: PIL.format
+#   force_overwrite     - whether the program should ask for permission before overwriting pre-existing thumbnails
+#   multiprocessing     - whether to use multiprocessing (on by default)
+#   pattern				- function that takes and returns a string
+#							it transforms the name of the original image into the name of the thumbnail 
 
 # in case of export, make sure it's within __name__ == __main__ clause when using multiprocessing
 # this is due to mpPool's need of replication of the source file, which results in an infinite loop
@@ -29,8 +25,8 @@ def thumbnalizeDirectory(
         new_w   		:int = 360,
         new_h   		:int = 360,
         format_			:str = "JPEG",
-        force_overwrite :bool = False,
         multiprocessing :bool = True,
+        force_overwrite :bool = False,
         pattern			:Callable[[str], str] = lambda x: "thumbnail_"+str(x)
         ) -> None:
     
@@ -46,7 +42,7 @@ def thumbnalizeDirectory(
                 [[
                     gallery_dir.joinpath(file.name), 
                     thumbnail_dir.joinpath(pattern(file.name)),
-                    new_w, new_h, force_overwrite, format_
+                    new_w, new_h, format_, force_overwrite
                 ]
                 for file in gallery_dir.iterdir()]
             )
@@ -55,7 +51,7 @@ def thumbnalizeDirectory(
             thumbnalizeImage(
                 gallery_dir.joinpath(file.name), 
                 thumbnail_dir.joinpath(pattern(file.name)),
-                new_w, new_h, force_overwrite, format_
+                new_w, new_h, format_, force_overwrite
             )
 
 
@@ -65,8 +61,8 @@ def thumbnalizeImage(
         output_file:Path,
         new_w:int, 
         new_h:int, 
-        force_overwrite:bool,
-        format_:str
+        format_:str,
+        force_overwrite:bool
         )-> None:
 
     with Image.open(source_file) as img:
@@ -117,7 +113,7 @@ if __name__ == "__main__":
     parsed = parser.parse_args()
 
     thumbnalizeDirectory(
-        parsed.source_path, parsed.output_path, 
-        parsed.width, parsed.height, 
-        parsed.format, 
-        parsed.force_overwrite, not parsed.not_multiprocessing)
+        source_path=parsed.source_path, output_path=parsed.output_path, 
+        new_w=parsed.width, new_h=parsed.height, 
+        format_=parsed.format,
+        force_overwrite=parsed.force_overwrite, multiprocessing=not parsed.not_multiprocessing)
